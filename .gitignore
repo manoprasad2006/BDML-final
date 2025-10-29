@@ -137,12 +137,15 @@ Thumbs.db
 *.DS_Store
 desktop.ini
 
-# Model files (uncomment if models should not be tracked)
-# *.pth
-# *.h5
-# *.onnx
-# *.pb
-# *.tflite
+# Model files - large binary files should not be tracked
+*.pth
+*.h5
+*.onnx
+*.pb
+*.tflite
+*.dat
+*.weights
+*.ckpt
 
 # Large data files
 *.csv
@@ -150,7 +153,7 @@ desktop.ini
 !requirements*.txt
 !package*.json
 
-# Data directories (uncomment if data should not be tracked)
+# Data directories - uncomment if you want to ignore entire data folders
 # data/
 # datasets/
 # checkpoints/
