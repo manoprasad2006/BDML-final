@@ -1,0 +1,25 @@
+services:
+  gesture-control:
+    build:
+      context: .
+      dockerfile: Dockerfile.cpu
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./models:/app/models
+      - ./data:/app/data
+      - ./utils.py:/app/utils.py
+      - ./main.py:/app/main.py
+    environment:
+      - FLASK_ENV=production
+      - PYTHONPATH=/app
+    devices:
+      - /dev/video0:/dev/video0  # Camera access
+    privileged: true  # Required for camera access
+    restart: unless-stopped
+    networks:
+      - gesture-network
+
+networks:
+  gesture-network:
+    driver: bridge

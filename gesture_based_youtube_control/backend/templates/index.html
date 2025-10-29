@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gesture-Based YouTube Control</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 1200px;
+            width: 90%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .video-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .video-container {
+            position: relative;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        #videoElement {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .gesture-info {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+        }
+
+        .gesture-display {
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .gesture-name {
+            font-size: 2em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .confidence-bar {
+            background: #e9ecef;
+            border-radius: 10px;
+            height: 20px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            transition: width 0.3s ease;
+        }
+
+        .hand-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .hand-label {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .hand-right {
+            background: #28a745;
+        }
+
+        .hand-left {
+            background: #007bff;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #dc3545;
+        }
+
+        .status-dot.active {
+            background: #28a745;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .instructions {
+            background: #e3f2fd;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .instructions h3 {
+            color: #1976d2;
+            margin-bottom: 15px;
+        }
+
+        .instructions ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .instructions li {
+            padding: 8px 0;
+            border-bottom: 1px solid #bbdefb;
+        }
+
+        .instructions li:last-child {
+            border-bottom: none;
+        }
+
+        .gesture-commands {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .command-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .command-section h4 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .command-list {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .gesture-commands {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 Gesture-Based YouTube Control</h1>
+            <p>Control YouTube with hand gestures using AI</p>
+        </div>
+
+        <div class="main-content">
+            <div class="video-section">
+                <h3>📹 Camera Feed</h3>
+                <div class="video-container">
+                    <video id="videoElement" autoplay muted></video>
+                </div>
+                <div class="controls">
+                    <button id="startBtn" class="btn btn-success">Start Camera</button>
+                    <button id="stopBtn" class="btn btn-danger">Stop Camera</button>
+                </div>
+            </div>
+
+            <div class="gesture-info">
+                <h3>🤖 Gesture Recognition</h3>
+                <div class="gesture-display">
+                    <div class="gesture-name" id="gestureName">No Gesture</div>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" id="confidenceBar" style="width: 0%"></div>
+                    </div>
+                    <div class="hand-info">
+                        <div class="hand-label" id="handLabel">No Hand</div>
+                        <div class="status-indicator">
+                            <div class="status-dot" id="statusDot"></div>
+                            <span id="statusText">Inactive</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="gesture-commands">
+                    <div class="command-section">
+                        <h4>🖐️ Right Hand Commands</h4>
+                        <div class="command-list">
+                            • Volume Up/Down<br>
+                            • Play/Pause<br>
+                            • Mouse Movement<br>
+                            • Left/Right Click
+                        </div>
+                    </div>
+                    <div class="command-section">
+                        <h4>🖐️ Left Hand Commands</h4>
+                        <div class="command-list">
+                            • Forward/Backward<br>
+                            • Fullscreen<br>
+                            • Captions<br>
+                            • Play/Pause
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>📋 How to Use</h3>
+            <ul>
+                <li>1. Click "Start Camera" to begin gesture recognition</li>
+                <li>2. Position your hands in front of the camera</li>
+                <li>3. Make gestures to control YouTube playback</li>
+                <li>4. Right hand controls volume and mouse</li>
+                <li>5. Left hand controls navigation</li>
+                <li>6. Ensure good lighting for better detection</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('videoElement');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const gestureName = document.getElementById('gestureName');
+        const confidenceBar = document.getElementById('confidenceBar');
+        const handLabel = document.getElementById('handLabel');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+
+        let stream = null;
+        let isProcessing = false;
+
+        startBtn.addEventListener('click', startCamera);
+        stopBtn.addEventListener('click', stopCamera);
+
+        async function startCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        width: 640, 
+                        height: 480 
+                    } 
+                });
+                video.srcObject = stream;
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                startGestureProcessing();
+            } catch (err) {
+                console.error('Error accessing camera:', err);
+                alert('Could not access camera. Please check permissions.');
+            }
+        }
+
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            video.srcObject = null;
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            isProcessing = false;
+            updateDisplay('No Gesture', 0, 'No Hand', false);
+        }
+
+        function startGestureProcessing() {
+            isProcessing = true;
+            processFrame();
+        }
+
+        async function processFrame() {
+            if (!isProcessing || !stream) return;
+
+            try {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                ctx.drawImage(video, 0, 0);
+                
+                const frameData = canvas.toDataURL('image/jpeg', 0.8);
+                
+                const response = await fetch('/api/gesture', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ frame: frameData })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        updateDisplay(
+                            data.gesture_data.current_gesture,
+                            data.gesture_data.confidence,
+                            data.gesture_data.hand_label,
+                            data.gesture_data.is_active
+                        );
+                    }
+                }
+            } catch (error) {
+                console.error('Error processing frame:', error);
+            }
+
+            setTimeout(processFrame, 100); // Process every 100ms
+        }
+
+        function updateDisplay(gesture, confidence, hand, isActive) {
+            gestureName.textContent = gesture;
+            confidenceBar.style.width = `${confidence * 100}%`;
+            
+            handLabel.textContent = hand;
+            handLabel.className = `hand-label ${hand === 'Right' ? 'hand-right' : 'hand-left'}`;
+            
+            statusDot.className = `status-dot ${isActive ? 'active' : ''}`;
+            statusText.textContent = isActive ? 'Active' : 'Inactive';
+        }
+    </script>
+</body>
+</html>
