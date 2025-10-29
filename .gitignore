@@ -170,6 +170,7 @@ desktop.ini
 
 # PDF files (documentation/assignments)
 *.pdf
+!experiments-pdf/
 
 # Docker
 .dockerignore
